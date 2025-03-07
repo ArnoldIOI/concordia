@@ -32,6 +32,8 @@ class GptLanguageModel(BaseGPTModel):
       api_key: str | None = None,
       measurements: measurements_lib.Measurements | None = None,
       channel: str = language_model.DEFAULT_STATS_CHANNEL,
+      use_azure: bool = False,
+      azure_endpoint: str | None = None,
   ):
     """Initializes the instance.
 
@@ -42,11 +44,21 @@ class GptLanguageModel(BaseGPTModel):
         use the OPENAI_API_KEY environment variable.
       measurements: The measurements object to log usage statistics to.
       channel: The channel to write the statistics to.
+      use_azure: Whether to use Azure OpenAI Service.
+      azure_endpoint: The endpoint for Azure OpenAI Service.
     """
     if api_key is None:
-        api_key = os.environ['OPENAI_API_KEY']
+      api_key = os.environ['OPENAI_API_KEY']
     self._api_key = api_key
-    client = openai.OpenAI(api_key=self._api_key)
+
+    if use_azure:
+      client = openai.AzureOpenAI(
+          api_key=self._api_key,
+          azure_endpoint=azure_endpoint,
+      )
+    else:
+      client = openai.OpenAI(api_key=self._api_key)
+
     super().__init__(model_name=model_name,
                      client=client,
                      measurements=measurements,
